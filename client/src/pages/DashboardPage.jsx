@@ -15,7 +15,7 @@ import Sidebar from '../components/layout/Sidebar';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const { analysisResult, status, reset } = useAnalysis();
+  const { analysisResult, analysisId, status, reset } = useAnalysis();
 
   if (!analysisResult) {
     return (
@@ -71,7 +71,7 @@ export default function DashboardPage() {
 
         <DimensionDrillDown dimensions={result.dimensions} />
 
-        <ExportBar result={result} onRerun={handleRerun} />
+        <ExportBar result={result} analysisId={analysisId} onRerun={handleRerun} />
       </motion.div>
     </div>
   );

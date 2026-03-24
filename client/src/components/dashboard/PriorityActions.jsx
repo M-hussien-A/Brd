@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { AlertTriangle, ArrowUpRight } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 
 const IMPACT_COLORS = {
   high: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',

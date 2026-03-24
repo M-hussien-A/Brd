@@ -3,7 +3,7 @@ import { Download, FileSpreadsheet, Copy, RotateCcw } from 'lucide-react';
 import { useState } from 'react';
 import { generatePdf } from '../../utils/exportPdf';
 
-export default function ExportBar({ result, onRerun }) {
+export default function ExportBar({ result, analysisId, onRerun }) {
   const [copySuccess, setCopySuccess] = useState(false);
 
   const handlePdf = () => {
@@ -12,8 +12,8 @@ export default function ExportBar({ result, onRerun }) {
 
   const handleXlsx = async () => {
     try {
-      const analysisId = result.id;
-      const res = await fetch(`/api/analysis/${analysisId}/xlsx`);
+      const id = analysisId || result.id;
+      const res = await fetch(`/api/analysis/${id}/xlsx`);
       if (!res.ok) throw new Error('Export failed');
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
