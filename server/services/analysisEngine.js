@@ -2,7 +2,17 @@ import Anthropic from '@anthropic-ai/sdk';
 import { v4 as uuidv4 } from 'uuid';
 import { DIMENSIONS } from '../config/dimensions.js';
 
-const client = new Anthropic();
+let client = null;
+function getClient() {
+  if (!client) {
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) {
+      throw new Error('ANTHROPIC_API_KEY environment variable is not set. Please add it in your Vercel project settings.');
+    }
+    client = new Anthropic({ apiKey });
+  }
+  return client;
+}
 
 export function chunkDocument(text, maxChars = 12000, overlap = 500) {
   if (text.length <= maxChars) return [text];
@@ -98,7 +108,8 @@ IMPORTANT:
 async function analyzeChunk(chunkText, chunkIndex, totalChunks, metadata) {
   const prompt = buildPrompt(chunkText, chunkIndex, totalChunks, metadata);
 
-  const response = await client.messages.create({
+  const anthropic = getClient();
+  const response = await anthropic.messages.create({
     model: 'claude-sonnet-4-20250514',
     max_tokens: 8000,
     temperature: 0.2,
@@ -276,8 +287,12 @@ function getGradeForScore(score) {
 }
 
 export async function runAnalysis(uploadData, metadata) {
+  // Validate API key early
+  getClient();
+
   const chunks = chunkDocument(uploadData.text);
   const results = [];
+  const errors = [];
 
   for (let i = 0; i < chunks.length; i += 3) {
     const batch = chunks.slice(i, i + 3);
@@ -286,12 +301,17 @@ export async function runAnalysis(uploadData, metadata) {
     );
     for (const r of batchResults) {
       if (r.status === 'fulfilled') results.push(r.value);
-      else console.error('Chunk analysis failed:', r.reason?.message);
+      else {
+        const errMsg = r.reason?.message || String(r.reason);
+        console.error('Chunk analysis failed:', errMsg);
+        errors.push(errMsg);
+      }
     }
   }
 
   if (results.length === 0) {
-    throw new Error('All chunk analyses failed. Please check your API key and try again.');
+    const firstError = errors[0] || 'Unknown error';
+    throw new Error(`Analysis failed: ${firstError}`);
   }
 
   return aggregateResults(results, metadata, uploadData);
