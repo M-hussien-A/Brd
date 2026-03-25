@@ -5,3 +5,4 @@ server/uploads/
 server/data/*.json
 *.log
 .DS_Store
+.vercel/
