@@ -25,6 +25,14 @@ function reducer(state, action) {
       return { ...state, analysisResult: action.payload, status: 'complete', progress: 100 };
     case 'ANALYSIS_ERROR':
       return { ...state, error: action.payload, status: 'error' };
+    case 'LOAD_HISTORY_ITEM':
+      return {
+        ...initialState,
+        analysisId: action.payload.analysisId,
+        analysisResult: action.payload.result,
+        status: 'complete',
+        progress: 100,
+      };
     case 'RESET':
       return initialState;
     default:

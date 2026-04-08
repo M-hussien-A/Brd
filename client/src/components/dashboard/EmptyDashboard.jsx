@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
-import { Upload } from 'lucide-react';
+import { Upload, Clock, Award } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useHistory } from '../../hooks/useHistory';
 import {
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -51,8 +52,24 @@ function EmptyGauge({ size = 160, label }) {
   );
 }
 
+const gradeColors = {
+  'A+': 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+  'A': 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+  'B+': 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+  'B': 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+  'C+': 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+  'C': 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+  'D': 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+  'F': 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+};
+
 export default function EmptyDashboard() {
   const navigate = useNavigate();
+  const { history, loadFromHistory } = useHistory();
+
+  const handleLoadHistory = (id) => {
+    loadFromHistory(id);
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
@@ -71,6 +88,49 @@ export default function EmptyDashboard() {
           Upload Document
         </button>
       </motion.div>
+
+      {/* Recent Analyses from History */}
+      {history.length > 0 && (
+        <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+          <div className="flex items-center gap-2 mb-4">
+            <Clock className="w-5 h-5 text-navy-400 dark:text-navy-300" />
+            <h2 className="section-title !mb-0">Recent Analyses</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {history.map((entry, i) => (
+              <motion.button
+                key={entry.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 + i * 0.05 }}
+                onClick={() => handleLoadHistory(entry.id)}
+                className="card !p-4 text-left hover:shadow-lg hover:border-accent-300 dark:hover:border-accent-500 transition-all group cursor-pointer"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-navy-50 dark:bg-navy-600 flex items-center justify-center">
+                    <span className="font-heading text-lg font-bold text-navy-500 dark:text-white">
+                      {Math.round(entry.overallScore)}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-heading text-sm font-semibold text-navy-500 dark:text-white truncate group-hover:text-accent-500 transition-colors">
+                      {entry.projectName || entry.fileName}
+                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${gradeColors[entry.healthGrade] || 'bg-gray-100 text-gray-600'}`}>
+                        {entry.healthGrade}
+                      </span>
+                      <span className="text-xs text-navy-300 dark:text-navy-500">
+                        {new Date(entry.analyzedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </motion.button>
+            ))}
+          </div>
+        </motion.section>
+      )}
 
       {/* Executive Summary Placeholder */}
       <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>

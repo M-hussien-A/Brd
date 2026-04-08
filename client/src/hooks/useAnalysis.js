@@ -1,5 +1,6 @@
 import { useCallback, useRef } from 'react';
 import { useAnalysisContext } from '../context/AnalysisContext';
+import { saveToHistory } from './useHistory';
 
 export function useAnalysis() {
   const { state, dispatch } = useAnalysisContext();
@@ -51,6 +52,7 @@ export function useAnalysis() {
       if (data.status === 'complete' && data.result) {
         dispatch({ type: 'ANALYSIS_START', payload: data.analysisId });
         dispatch({ type: 'ANALYSIS_COMPLETE', payload: data.result });
+        saveToHistory(data.analysisId, data.result);
         return data.result;
       }
 
@@ -93,6 +95,7 @@ function pollForResult(analysisId, dispatch, pollingRef) {
         if (data.status === 'complete') {
           clearInterval(pollingRef.current);
           dispatch({ type: 'ANALYSIS_COMPLETE', payload: data.result });
+          saveToHistory(analysisId, data.result);
           resolve(data.result);
         } else if (data.status === 'error') {
           clearInterval(pollingRef.current);

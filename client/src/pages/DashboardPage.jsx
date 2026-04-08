@@ -1,6 +1,8 @@
+import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAnalysis } from '../hooks/useAnalysis';
+import { useHistory } from '../hooks/useHistory';
 import ExecutiveSummary from '../components/dashboard/ExecutiveSummary';
 import DimensionScorecard from '../components/dashboard/DimensionScorecard';
 import DimensionRadarChart from '../components/dashboard/DimensionRadarChart';
@@ -16,6 +18,16 @@ import EmptyDashboard from '../components/dashboard/EmptyDashboard';
 export default function DashboardPage() {
   const navigate = useNavigate();
   const { analysisResult, analysisId, status, reset } = useAnalysis();
+  const { history, loadFromHistory } = useHistory();
+  const autoLoaded = useRef(false);
+
+  // Auto-load latest history item if context is empty (e.g. after page refresh)
+  useEffect(() => {
+    if (!analysisResult && history.length > 0 && !autoLoaded.current) {
+      autoLoaded.current = true;
+      loadFromHistory(history[0].id);
+    }
+  }, [analysisResult, history, loadFromHistory]);
 
   if (!analysisResult) {
     return <EmptyDashboard />;
